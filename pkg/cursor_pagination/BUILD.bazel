@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cursor_pagination",
+    srcs = [
+        "cursor_pagination.go",
+        "order.go",
+        "pagination.go",
+    ],
+    importpath = "github.com/mindful-hq/spansql-pagination/pkg/cursor_pagination",
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_cloud_go_spanner//spansql"],
+)

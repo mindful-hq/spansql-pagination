@@ -1,0 +1,39 @@
+kind: pipeline
+type: kubernetes
+name: kubernetes
+resources:
+  requests:
+    cpu: 1500
+    memory: 4000MiB
+clone:
+  disable: true
+
+steps:
+  - name: clone
+    image: drone/git:latest
+    resources:
+      limits:
+        cpu: 50
+        memory: 100MiB
+
+  - name: ls-lint
+    image: lslintorg/ls-lint:1.11.2
+    resources:
+      limits:
+        cpu: 50
+        memory: 100MiB
+
+  - name: bazel
+    image: gcr.io/bazel-public/bazel:5.3.0
+    environment:
+      GOOGLE_CREDENTIALS:
+        from_secret: GOOGLE_CREDENTIALS_PRODUCTION
+    resources:
+      limits:
+        cpu: 1400
+        memory: 3800MiB
+    commands:
+      - echo "$GOOGLE_CREDENTIALS" > /tmp/google_credentials.json
+      - bazel run --remote_cache=https://storage.googleapis.com/spansql-pagination-bazel-production --google_credentials=/tmp/google_credentials.json //:buildifier -- --lint=warn
+      - bazel build --remote_cache=https://storage.googleapis.com/spansql-pagination-bazel-production --google_credentials=/tmp/google_credentials.json //...
+      - bazel test --remote_cache=https://storage.googleapis.com/spansql-pagination-bazel-production --google_credentials=/tmp/google_credentials.json //...
